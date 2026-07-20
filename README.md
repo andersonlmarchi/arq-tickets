@@ -28,4 +28,29 @@ Repositório de estudo: microsserviços simples, REST síncrono, Docker Compose.
 
 Fluxo de estudo: **Usuário -> Frontend -> Vendas -> Catálogo (reserva) -> pagamento simulado (chave 4 dígitos, 30s) -> Vendas confirma venda -> Frontend**.
 
-Implementação de código: a iniciar após validação do planejamento.
+## Docker Compose (etapa atual: catálogo)
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+| Servico | Host | Rede interna |
+|---------|------|----------------|
+| PostgreSQL catálogo | `localhost:5434` | `postgres-catalog:5432` |
+| catalog-service | *(nao publicado no host)* | `catalog-service:8000` |
+
+Teste rapido (catálogo so na rede Docker):
+
+```bash
+docker compose exec catalog-service python -c "
+import urllib.request
+req = urllib.request.Request(
+    'http://127.0.0.1:8000/api/catalogo/eventos',
+    headers={'X-API-Key': 'dev-shared-key-change-me'},
+)
+print(urllib.request.urlopen(req).read().decode())
+"
+```
+
+Detalhes: [catalog-service/README.md](./catalog-service/README.md).

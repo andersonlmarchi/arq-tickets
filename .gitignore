@@ -3,3 +3,13 @@
 
 # Documentos PDF
 *.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Ambiente
+.env
+.env.local

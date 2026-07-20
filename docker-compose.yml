@@ -1,0 +1,58 @@
+name: ${COMPOSE_PROJECT_NAME:-arq-tickets}
+
+services:
+  postgres-catalog:
+    image: postgres:16-alpine
+    container_name: postgres-catalog
+    environment:
+      POSTGRES_USER: ${POSTGRES_CATALOG_USER:-catalog}
+      POSTGRES_PASSWORD: ${POSTGRES_CATALOG_PASSWORD:-catalog_secret}
+      POSTGRES_DB: ${POSTGRES_CATALOG_DB:-catalog_db}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_catalog_data:/var/lib/postgresql/data
+    networks:
+      - ticket-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_CATALOG_USER:-catalog}:${POSTGRES_CATALOG_PASSWORD:-catalog_secret}@postgres-catalog:5432/${POSTGRES_CATALOG_DB:-catalog_db}
+      API_KEY: ${CATALOG_API_KEY:-dev-shared-key-change-me}
+      LOG_LEVEL: INFO
+    expose:
+      - "8000"
+    depends_on:
+      postgres-catalog:
+        condition: service_healthy
+    networks:
+      - ticket-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+networks:
+  ticket-net:
+    driver: bridge
+
+volumes:
+  postgres_catalog_data:
