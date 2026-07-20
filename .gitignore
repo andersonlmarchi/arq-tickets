@@ -1,0 +1,5 @@
+# Cursor (regras locais do IDE)
+.cursor/
+
+# Documentos PDF
+*.pdf
