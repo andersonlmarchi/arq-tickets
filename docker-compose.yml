@@ -52,6 +52,12 @@ services:
     container_name: catalog-service
     env_file:
       - .env
+    environment:
+      POSTGRES_CATALOG_USER: ${POSTGRES_CATALOG_USER:-catalog}
+      POSTGRES_CATALOG_PASSWORD: ${POSTGRES_CATALOG_PASSWORD:-catalog_secret}
+      POSTGRES_CATALOG_DB: ${POSTGRES_CATALOG_DB:-catalog_db}
+      POSTGRES_CATALOG_HOST: postgres-catalog
+      API_KEY: ${CATALOG_API_KEY:-dev-shared-key-change-me}
     expose:
       - "8000"
     depends_on:
@@ -79,6 +85,11 @@ services:
     container_name: sales-service
     env_file:
       - .env
+    environment:
+      DB_DATABASE: ${POSTGRES_SALES_DB:-sales_db}
+      DB_USERNAME: ${POSTGRES_SALES_USER:-sales}
+      DB_PASSWORD: ${POSTGRES_SALES_PASSWORD:-sales_secret}
+      CATALOG_API_KEY: ${CATALOG_API_KEY:-dev-shared-key-change-me}
     ports:
       - "8080:8080"
     depends_on:
