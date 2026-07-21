@@ -27,20 +27,25 @@ flowchart LR
     S0 --> S1 --> S2 --> S3 --> S4
 ```
 
+Onde investir esforço vs. tipo de tráfego:
+
 ```mermaid
-quadrantChart
-    title Onde investir esforço vs. tipo de tráfego
-    x-axis Baixo impacto --> Alto impacto
-    y-axis Leitura --> Escrita
-    quadrant-1 Escrita crítica
-    quadrant-2 Leitura crítica
-    CDN assets: [0.85, 0.25]
-    Redis GET eventos: [0.7, 0.35]
-    LB Vendas: [0.55, 0.55]
-    LB Catálogo: [0.6, 0.7]
-    PgBouncer: [0.75, 0.8]
-    UPDATE atômico PG: [0.95, 0.95]
-    Rate limit compra: [0.8, 0.75]
+flowchart TB
+    subgraph Escrita["Escrita crítica - alto impacto"]
+        C[UPDATE atômico PG]
+        D[Rate limit compra]
+        E[PgBouncer]
+        F[LB Catálogo]
+    end
+
+    subgraph Leitura["Leitura - alto impacto"]
+        A[CDN assets]
+        B[Redis GET eventos]
+    end
+
+    subgraph Meio["Volume HTTP - médio"]
+        G[LB Vendas]
+    end
 ```
 
 | Estágio | Problema que endereça | Mantém consistência anti-oversell? |
