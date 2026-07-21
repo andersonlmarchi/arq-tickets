@@ -21,7 +21,7 @@ Repositório de estudo: microsserviços simples, REST síncrono, Docker Compose.
 | --------------------- | -------------------- | ------------------- |
 | Frontend              | React + Vite + Axios | 5173                |
 | Vendas                | PHP 8.4 + Laravel    | 8080                |
-| Catálogo              | Python + FastAPI     | 8000 (rede interna) |
+| Catálogo              | Python + FastAPI     | 8000                |
 | PostgreSQL (vendas)   | PostgreSQL           | 5433                |
 | PostgreSQL (catálogo) | PostgreSQL           | 5434                |
 
@@ -44,14 +44,15 @@ Chaves de lab (`APP_KEY`, `CATALOG_API_KEY` / `API_KEY`): valores fixos no `.env
 |---------|------|----------------|
 | PostgreSQL catálogo | `localhost:5434` | `postgres-catalog:5432` |
 | PostgreSQL vendas | `localhost:5433` | `postgres-sales:5432` |
-| catalog-service | *(nao publicado)* | `catalog-service:8000` |
+| catalog-service | `http://localhost:8000` | `catalog-service:8000` |
 | sales-service | `http://localhost:8080` | `sales-service:8080` |
 | frontend | `http://localhost:5173` | *(dev server Vite)* |
 
-UI: abra [http://localhost:5173](http://localhost:5173) apos o compose subir. Listagem de eventos, compra e modal de pagamento simulado (chave 4 digitos, 30s).
+UI: abra [http://localhost:5173](http://localhost:5173) apos o compose subir. Swagger das APIs: [http://localhost:5173/docs](http://localhost:5173/docs).
 
 ```bash
 curl -s http://localhost:8080/api/health
+curl -s http://localhost:8000/health
 curl -s http://localhost:8080/api/eventos
 ```
 

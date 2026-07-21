@@ -156,6 +156,11 @@ function App() {
       <header className="header">
         <h1>arq-tickets</h1>
         <p>Comprar ingressos</p>
+        <p className="header-docs">
+          <a className="header-link" href="/docs">
+            documentacao API (Swagger)
+          </a>
+        </p>
       </header>
 
       {banner ? (

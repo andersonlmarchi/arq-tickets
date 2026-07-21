@@ -1,0 +1,237 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "catalog-service",
+    "version": "0.1.0",
+    "description": "API de estoque. Documentacao Swagger apenas no frontend /docs."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Host (browser) - requer header X-API-Key"
+    }
+  ],
+  "tags": [
+    { "name": "health" },
+    { "name": "catalogo" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "ErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "correlation_id": { "type": "string", "format": "uuid" }
+        },
+        "required": ["code", "message"]
+      },
+      "EventoOut": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nome": { "type": "string" },
+          "estoque": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "EventoListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EventoOut" }
+          }
+        }
+      },
+      "ReservaRequest": {
+        "type": "object",
+        "required": ["evento_id", "quantidade"],
+        "properties": {
+          "evento_id": { "type": "integer", "minimum": 1 },
+          "quantidade": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "ReservaResponse": {
+        "type": "object",
+        "properties": {
+          "evento_id": { "type": "integer" },
+          "quantidade_reservada": { "type": "integer" },
+          "estoque_restante": { "type": "integer" },
+          "correlation_id": { "type": "string" }
+        }
+      },
+      "DevolverRequest": {
+        "type": "object",
+        "required": ["evento_id", "quantidade"],
+        "properties": {
+          "evento_id": { "type": "integer", "minimum": 1 },
+          "quantidade": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "DevolverResponse": {
+        "type": "object",
+        "properties": {
+          "evento_id": { "type": "integer" },
+          "quantidade_devolvida": { "type": "integer" },
+          "estoque_restante": { "type": "integer" },
+          "correlation_id": { "type": "string" }
+        }
+      }
+    },
+    "parameters": {
+      "CorrelationId": {
+        "name": "X-Correlation-Id",
+        "in": "header",
+        "required": false,
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    }
+  },
+  "security": [{ "ApiKeyAuth": [] }],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Health check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogo/eventos": {
+      "get": {
+        "tags": ["catalogo"],
+        "summary": "Listar eventos",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "responses": {
+          "200": {
+            "description": "Lista de eventos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EventoListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key invalida",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogo/reservar": {
+      "post": {
+        "tags": ["catalogo"],
+        "summary": "Reservar estoque",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReservaRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reserva OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReservaResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "EVENTO_NAO_ENCONTRADO",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "409": {
+            "description": "ESTOQUE_INSUFICIENTE",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key invalida",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogo/devolver": {
+      "post": {
+        "tags": ["catalogo"],
+        "summary": "Devolver estoque",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DevolverRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Devolucao OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DevolverResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "EVENTO_NAO_ENCONTRADO",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key invalida",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -17,6 +17,16 @@
   color: #64748b;
 }
 
+.header-link {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.header-docs {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+}
+
 .panel {
   margin-top: 1.5rem;
   border: 1px solid #e2e8f0;

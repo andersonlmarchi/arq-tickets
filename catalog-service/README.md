@@ -22,7 +22,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Servicos desta etapa: `postgres-catalog`, `catalog-service` (porta **8000** apenas na rede `ticket-net`).
+Servicos desta etapa: `postgres-catalog`, `catalog-service` (**8000** no host e na rede `ticket-net`). Swagger UI so no frontend `/docs`.
 
 Entrypoint: aguarda PG -> `alembic upgrade head` -> `python -m app.db.seed` -> `uvicorn`.
 

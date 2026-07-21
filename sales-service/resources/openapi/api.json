@@ -1,0 +1,309 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "sales-service",
+    "version": "0.1.0",
+    "description": "API publica para o frontend. Contratos em docs/PLANEJAMENTO-ARQUITETURA.md secao 5."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Host (browser) - Try it out"
+    }
+  ],
+  "tags": [
+    { "name": "health" },
+    { "name": "eventos" },
+    { "name": "compras" }
+  ],
+  "components": {
+    "schemas": {
+      "ErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "correlation_id": { "type": "string", "format": "uuid" }
+        },
+        "required": ["code", "message"]
+      },
+      "EventoVitrine": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nome": { "type": "string" },
+          "estoque_disponivel": { "type": "integer" }
+        }
+      },
+      "IniciarRequest": {
+        "type": "object",
+        "required": ["evento_id", "quantidade"],
+        "properties": {
+          "evento_id": { "type": "integer", "minimum": 1 },
+          "quantidade": { "type": "integer", "minimum": 1, "maximum": 10 }
+        }
+      },
+      "IniciarResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "format": "uuid" },
+          "chave_exibicao": { "type": "string", "pattern": "^[0-9]{4}$" },
+          "expira_em_segundos": { "type": "integer", "example": 30 },
+          "evento_id": { "type": "integer" },
+          "quantidade": { "type": "integer" },
+          "correlation_id": { "type": "string", "format": "uuid" }
+        }
+      },
+      "ConfirmarRequest": {
+        "type": "object",
+        "required": ["token", "chave_digitada"],
+        "properties": {
+          "token": { "type": "string", "format": "uuid" },
+          "chave_digitada": { "type": "string", "minLength": 4, "maxLength": 4 }
+        }
+      },
+      "ConfirmarResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "evento_id": { "type": "integer" },
+          "quantidade": { "type": "integer" },
+          "status": { "type": "string", "example": "confirmada" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "correlation_id": { "type": "string", "format": "uuid" }
+        }
+      },
+      "ChaveIncorretaResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ErrorBody" },
+          {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "enum": ["CHAVE_INCORRETA"] },
+              "chave_exibicao": { "type": "string" },
+              "tentativas_restantes": { "type": "integer" }
+            }
+          }
+        ]
+      },
+      "CancelarRequest": {
+        "type": "object",
+        "required": ["token"],
+        "properties": {
+          "token": { "type": "string", "format": "uuid" }
+        }
+      },
+      "CancelarResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "format": "uuid" },
+          "status": { "type": "string" },
+          "correlation_id": { "type": "string", "format": "uuid" }
+        }
+      }
+    },
+    "parameters": {
+      "CorrelationId": {
+        "name": "X-Correlation-Id",
+        "in": "header",
+        "required": false,
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eventos": {
+      "get": {
+        "tags": ["eventos"],
+        "summary": "Listar eventos (proxy catalogo)",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/EventoVitrine" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "CATALOGO_INDISPONIVEL",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compras/iniciar": {
+      "post": {
+        "tags": ["compras"],
+        "summary": "Reservar e abrir pagamento simulado",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IniciarRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pendente criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IniciarResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "409": {
+            "description": "ESTOQUE_INSUFICIENTE",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "503": {
+            "description": "CATALOGO_INDISPONIVEL",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compras/confirmar": {
+      "post": {
+        "tags": ["compras"],
+        "summary": "Confirmar pagamento (chave 4 digitos)",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConfirmarRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Venda confirmada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ConfirmarResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "CHAVE_INCORRETA",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChaveIncorretaResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "CHAVE_INVALIDA ou validacao",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "410": {
+            "description": "PAGAMENTO_EXPIRADO",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          },
+          "404": {
+            "description": "PAGAMENTO_NAO_ENCONTRADO",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compras/cancelar": {
+      "post": {
+        "tags": ["compras"],
+        "summary": "Cancelar pendente e devolver estoque",
+        "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CancelarRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cancelado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CancelarResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "PAGAMENTO_NAO_ENCONTRADO",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorBody" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

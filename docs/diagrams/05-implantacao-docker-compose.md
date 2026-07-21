@@ -6,7 +6,7 @@ flowchart LR
         subgraph Compose["docker-compose.yml"]
             FE_C[container: frontend<br/>build: ./frontend<br/>ports: 5173:5173]
             VS_C[container: sales-service<br/>build: ./sales-service<br/>ports: 8080:8080]
-            CS_C[container: catalog-service<br/>build: ./catalog-service<br/>expose: 8000]
+            CS_C[container: catalog-service<br/>build: ./catalog-service<br/>ports: 8000:8000]
             PG_S_C[container: postgres-sales<br/>ports: 5433:5432]
             PG_C_C[container: postgres-catalog<br/>ports: 5434:5432]
         end
@@ -19,4 +19,5 @@ flowchart LR
 
     Browser((Browser)) --> FE_C
     Browser --> VS_C
+    Browser --> CS_C
 ```

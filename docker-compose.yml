@@ -58,8 +58,8 @@ services:
       POSTGRES_CATALOG_DB: ${POSTGRES_CATALOG_DB:-catalog_db}
       POSTGRES_CATALOG_HOST: postgres-catalog
       API_KEY: ${CATALOG_API_KEY:-dev-shared-key-change-me}
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       postgres-catalog:
         condition: service_healthy

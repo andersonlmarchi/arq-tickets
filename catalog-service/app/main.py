@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import catalogo, health
@@ -13,7 +14,23 @@ from app.middleware.correlation import CorrelationIdMiddleware, get_correlation_
 setup_logging(settings.log_level)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="catalog-service", version="0.1.0")
+app = FastAPI(
+    title="catalog-service",
+    version="0.1.0",
+    description="API de estoque. Documentacao Swagger: frontend /docs",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(CorrelationIdMiddleware)
 app.include_router(health.router)
 app.include_router(catalogo.router)
