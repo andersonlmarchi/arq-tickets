@@ -56,7 +56,7 @@ Demais pastas: igual resumo anterior (`CatalogClient` + `devolver`).
 Sem mudança de topologia [05](./diagrams/05-implantacao-docker-compose.md).
 
 **Env Vendas:** `PAGAMENTO_PRAZO_SEGUNDOS=30`, `PAGAMENTO_MAX_ERROS_CHAVE=3` (default 3).  
-**Env Frontend (opcional):** `VITE_PAGAMENTO_PRAZO_SEGUNDOS=30` para sincronizar contador do botão.
+Contador do botao no front usa `expira_em_segundos` da resposta de `iniciar` (fallback 30 no codigo).
 
 ---
 

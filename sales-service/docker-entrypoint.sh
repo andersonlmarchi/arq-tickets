@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
-  php artisan key:generate --force --no-interaction
+if [ -z "$APP_KEY" ]; then
+  export APP_KEY="base64:1d2pasCVUUKQNjy3J3sUhtKffvSDYmxk1+bK3jLPFzk="
 fi
 
 echo "Aguardando PostgreSQL (vendas)..."

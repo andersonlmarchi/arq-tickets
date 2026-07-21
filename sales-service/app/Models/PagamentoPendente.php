@@ -17,6 +17,8 @@ class PagamentoPendente extends Model
 
     public const STATUS_CHAVE_ESGOTADA = 'chave_esgotada';
 
+    protected $table = 'pagamentos_pendentes';
+
     public $incrementing = false;
 
     protected $keyType = 'string';

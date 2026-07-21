@@ -28,17 +28,17 @@ Repositório de estudo: microsserviços simples, REST síncrono, Docker Compose.
 
 Fluxo de estudo: **Usuário -> Frontend -> Vendas -> Catálogo (reserva) -> pagamento simulado (chave 4 dígitos, 30s) -> Vendas confirma venda -> Frontend**.
 
-## Docker Compose (catalogo + vendas)
+## Docker Compose (stack completa)
 
 Um unico **`.env` na raiz** e carregado em todos os containers via `env_file` do Compose.
 
 ```bash
 cp .env.example .env
-# edite .env se precisar (senhas, APP_KEY, etc.)
+# edite .env se precisar (senhas, etc.)
 docker compose up --build
 ```
 
-`APP_KEY` vazio: o entrypoint do Laravel gera na primeira subida. Para fixar, defina `APP_KEY=` no `.env` ( rode `php artisan key:generate --show` no sales-service se quiser ).
+Chaves de lab (`APP_KEY`, `CATALOG_API_KEY` / `API_KEY`): valores fixos no `.env.example`, sem rotacao automatica.
 
 | Servico | Host | Rede interna |
 |---------|------|----------------|
@@ -46,10 +46,13 @@ docker compose up --build
 | PostgreSQL vendas | `localhost:5433` | `postgres-sales:5432` |
 | catalog-service | *(nao publicado)* | `catalog-service:8000` |
 | sales-service | `http://localhost:8080` | `sales-service:8080` |
+| frontend | `http://localhost:5173` | *(dev server Vite)* |
+
+UI: abra [http://localhost:5173](http://localhost:5173) apos o compose subir. Listagem de eventos, compra e modal de pagamento simulado (chave 4 digitos, 30s).
 
 ```bash
 curl -s http://localhost:8080/api/health
 curl -s http://localhost:8080/api/eventos
 ```
 
-Detalhes: [catalog-service/README.md](./catalog-service/README.md), [sales-service/README.md](./sales-service/README.md).
+Detalhes: [frontend/README.md](./frontend/README.md), [catalog-service/README.md](./catalog-service/README.md), [sales-service/README.md](./sales-service/README.md).
