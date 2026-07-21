@@ -4,6 +4,8 @@ services:
   postgres-catalog:
     image: postgres:16-alpine
     container_name: postgres-catalog
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_CATALOG_USER:-catalog}
       POSTGRES_PASSWORD: ${POSTGRES_CATALOG_PASSWORD:-catalog_secret}
@@ -21,15 +23,35 @@ services:
       retries: 10
       start_period: 10s
 
+  postgres-sales:
+    image: postgres:16-alpine
+    container_name: postgres-sales
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_SALES_USER:-sales}
+      POSTGRES_PASSWORD: ${POSTGRES_SALES_PASSWORD:-sales_secret}
+      POSTGRES_DB: ${POSTGRES_SALES_DB:-sales_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_sales_data:/var/lib/postgresql/data
+    networks:
+      - ticket-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   catalog-service:
     build:
       context: ./catalog-service
       dockerfile: Dockerfile
     container_name: catalog-service
-    environment:
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_CATALOG_USER:-catalog}:${POSTGRES_CATALOG_PASSWORD:-catalog_secret}@postgres-catalog:5432/${POSTGRES_CATALOG_DB:-catalog_db}
-      API_KEY: ${CATALOG_API_KEY:-dev-shared-key-change-me}
-      LOG_LEVEL: INFO
+    env_file:
+      - .env
     expose:
       - "8000"
     depends_on:
@@ -50,9 +72,39 @@ services:
       retries: 5
       start_period: 40s
 
+  sales-service:
+    build:
+      context: ./sales-service
+      dockerfile: Dockerfile
+    container_name: sales-service
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-sales:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+    networks:
+      - ticket-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "php",
+          "-r",
+          "exit(file_get_contents('http://127.0.0.1:8080/api/health') ? 0 : 1);",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
 networks:
   ticket-net:
     driver: bridge
 
 volumes:
   postgres_catalog_data:
+  postgres_sales_data:

@@ -28,4 +28,4 @@ Entrypoint: aguarda PG -> `alembic upgrade head` -> `python -m app.db.seed` -> `
 
 Seed: eventos 1 Show Rock (100), 2 Festival Jazz (50), 3 Teatro Clássico (5).
 
-Variaveis: ver `catalog-service/.env.example` e `.env.example` na raiz.
+Variaveis: arquivo **`.env` na raiz do monorepo** (ver `.env.example`). O Compose injeta com `env_file`.
